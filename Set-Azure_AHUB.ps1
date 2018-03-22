@@ -1,4 +1,4 @@
-﻿<#
+ <#
 .SYNOPSIS
      RunBook Enforces AHUB Licensing on Windows Servers 
 .DESCRIPTION
@@ -8,25 +8,43 @@
  
 #>
 
+　
+　
+$ConnectionName = "AzureRunAsConnection"
+try {
+    $ServicePrincipalConnection=Get-AutomationConnection -Name $ConnectionName
 
-$AzureSub = @("Visual Studio Enterprise","Visual Studio Professional with MSDN")
+    "Logging in to Azure..."
+    Add-AzureRmAccount `
+        -ServicePrincipal `
+        -TenantID $ServicePrincipalConnection.TenantID `
+        -ApplicationId $ServicePrincipalConnection.ApplicationId `
+        -CertificateThumbprint $ServicePrincipalConnection.CertificateThumbprint
+}
+Catch {
+    if (!$ServicePrincipalConnection)
+    {
+        $ErrorMessage = "Connection $ConnectionName not found."
+        throw $ErrorMessage 
+    }else{
+        Write-Error -Message $_.Exception
+        throw $_.Exception
+    }
+}
+        
 
-$AzureSub | ForEach-Object { 
-    Select-AzureRmSubscription $_
-        Get-AzureRMVM | ForEach-Object {
-            if ($_.StorageProfile.OSDisk.OSType -match "Windows") {
-                $_.LicenseType
-                    if ($_.LicenseType -notmatch "Windows_Server") {
-                    $_.Name
-                    $_.ResourceGroupName
-                    $_.LicenseType = "Windows_Server"
-                        Update-AzureRmVM -ResourceGroupName $_.ResourceGroupName -VM $_
-                          
-            }
-
+ 
+Select-AzureRmSubscription $_
+    Get-AzureRMVM | ForEach-Object {
+        if ($_.StorageProfile.OSDisk.OSType -match "Windows") {
+            $_.LicenseType
+                if ($_.LicenseType -notmatch "Windows_Server") {
+                $_.LicenseType = "Windows_Server"
+                    Update-AzureRmVM -ResourceGroupName $_.ResourceGroupName -VM $_
         }
            
     }
 }
 
-
+　
+ 
