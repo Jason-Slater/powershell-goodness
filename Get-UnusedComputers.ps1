@@ -38,5 +38,5 @@ $Date         = Get-Date
 Get-ADComputer -Filter {LastLogonTimeStamp -lt $Time} -Properties *|`
 Select-object Name, OperatingSystem |`
 Format-Table -auto |`
-Out-File -FilePath c:\ComputerDeletions_$((Get-Date).ToString('MM-dd-yyyy')).txt
+Out-File -FilePath c:\ComputerDeletions_$(($Date).ToString('MM-dd-yyyy')).txt
 }
