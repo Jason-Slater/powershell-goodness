@@ -20,24 +20,16 @@
  Powershell script to find unused computer objects 90 days or more 
 
 #> 
-Function Disable-ComputerObjects {
-    [CmdletBinding(DefaultParameterSetName = "Default")]
+
 
 Param(
-    [Parameter(
-        ParameterSetName = "Default",    
-        Mandatory = $false,
-        ValueFromPipeline = $false,
-        Position=0
-    )]
-    [Parameter(
-        ParameterSetName = "Disable",
-        Mandatory = $false,
-        ValueFromPipeline = $true,
-        Position=1
-    )]
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [ValidateSet ('Identify','Disable','Delete')]
+    [string] $ScriptAction
 )
-}
+
+Function Identify {
 
 $DaysInactive = 90
 $Time         = (Get-Date).Adddays(-($DaysInactive))
@@ -47,3 +39,4 @@ Get-ADComputer -Filter {LastLogonTimeStamp -lt $Time} -Properties *|`
 Select-object Name, OperatingSystem |`
 Format-Table -auto |`
 Out-File -FilePath c:\ComputerDeletions_$((Get-Date).ToString('MM-dd-yyyy')).txt
+}
