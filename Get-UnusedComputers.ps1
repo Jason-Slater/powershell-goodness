@@ -9,13 +9,6 @@
 
 .COMPANYNAME My Company of Awesome
 
-.RELEASENOTES
-
-
-#>
-
-<# 
-
 .DESCRIPTION 
  Powershell script to find unused computer objects 90 days or more 
 
