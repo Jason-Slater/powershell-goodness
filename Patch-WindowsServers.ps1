@@ -21,7 +21,7 @@
 #Param()
 
 #Variables
-$ADDS     = (Get-ADDomain).name
+# $ADDS     = (Get-ADDomain).name
 $ModVer   = "2.1.0.1"
 $PkgVer   = "2.8.5.201"
 $CompList = Get-ADComputer -Filter { OperatingSystem -Like '*Server*' } -Properties *
