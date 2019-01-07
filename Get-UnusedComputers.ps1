@@ -22,14 +22,29 @@ Param(
     [string] $ScriptAction
 )
 
-Function Identify {
-
-$DaysInactive = 90
-$Time         = (Get-Date).Adddays(-($DaysInactive))
-$Date         = Get-Date
-
-Get-ADComputer -Filter {LastLogonTimeStamp -lt $Time} -Properties *|`
-Select-object Name, OperatingSystem |`
-Format-Table -auto |`
-Out-File -FilePath c:\ComputerDeletions_$(($Date).ToString('MM-dd-yyyy')).txt
+Function Identify-Computers {
+    $DaysInactive = 90
+    $Time         = (Get-Date).Adddays(-($DaysInactive))
+    $Date         = Get-Date
+    Get-ADComputer -Filter {LastLogonTimeStamp -lt $Time} -Properties *|`
+    Select-object Name, OperatingSystem |`
+    Format-Table -auto |`
+    Out-File -FilePath c:\temp\ComputerDeletions_$(($Date).ToString('MM-dd-yyyy')).txt
 }
+
+Function Disable-Computers {
+    $ListOfComputers = Get-Content -path c:\temp\ComputerDeletions*.txt
+    $ListOfUComputers | Get-ADComputer | Set-ADComputer -Enabled $false
+}
+
+Function Delete-Computers {
+    $ListOfComputers = Get-Content -path c:\temp\ComputerDeletions*.txt
+    $ListOfUComputers | Get-ADComputer | Remove-ADComputer
+}
+
+If ($ScriptAction -eq 'Identify')
+    {Identify-Computers} 
+Elseif ($ScriptAction -eq 'Disable')
+    {Disable-Computers}
+Elseif ($ScriptAction -eq 'Delete')
+    {Delete-Computers}
