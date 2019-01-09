@@ -88,6 +88,6 @@ foreach ($Comp in $CompList) {
                                
                  }
 
-            }
+        }
 
  }
