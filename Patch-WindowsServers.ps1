@@ -1,7 +1,7 @@
 
 <#PSScriptInfo
 
-.VERSION 1.0
+.VERSION 2.0
 
 .GUID 9aff0b48-441f-4111-a9a6-0f1a1a7bf38e
 
@@ -9,19 +9,19 @@
 
 .COMPANYNAME My Company of Awesome
 
-
-#>
-
-<# 
-
 .DESCRIPTION 
+
  Powershell script to execute Windows Update across all servers in a domain, leveraging the PSWindowsUpdate module from PowerShell Gallery 
 
 #> 
+
 #Variables
 
-# Obtain a server list
-$CompList = Get-ADComputer -Filter { OperatingSystem -Like '*Server*' } -Properties name | Select-object name
+
+# $CompList = Get-ADComputer -Filter { OperatingSystem -Like '*Server*' } -Properties name | Select-object name
+
+$Complist = @('N9ITA01','N9BCK01')
+$Cred     = Get-Credential
 
 # Script Body
 
@@ -47,7 +47,7 @@ foreach ($Comp in $CompList) {
 
         Exit-PSSession
 
-        }
+            }
 
             if ($PSVersion -lt 5 ) {
 
@@ -71,23 +71,18 @@ foreach ($Comp in $CompList) {
 
                  } else {
 
-                    Install-PackageProvider -Name NuGet 
-
-                    Start-Sleep -Seconds 60
-
-                    Install-Module -Name PSWindowsUpdate
-
-                    Start-Sleep -Seconds 60
-
                     Exit-PSSession
 
-                    # Install-WindowsUpdate -IgnoreUserInput -AcceptAll -Download -Install -AutoReboot -Verbose
-                        
-                   Install-WindowsUpdate -ComputerName $Comp -IgnoreUserInput -AcceptAll -Download -Install -AutoReboot -Verbose
+                    Invoke-command -ComputerName $Comp -credential $Cred -script {Install-PackageProvider -Name NuGet} 
+
+                    c:\pstools\psexec.exe \\$Comp -s C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -c Install-WindowsUpdate -MicrosoftUpdate -Download -Install -AcceptAll -AutoReboot -IgnoreUserInput}          
 
                                
                  }
 
-        }
+            }
 
- }
+ 
+
+
+
