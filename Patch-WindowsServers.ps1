@@ -18,9 +18,8 @@
 #Variables
 
 
-# $CompList = Get-ADComputer -Filter { OperatingSystem -Like '*Server*' } -Properties name | Select-object name
+$CompList = Get-ADComputer -Filter { OperatingSystem -Like '*Server*' } -Properties * | select-object -ExpandProperty name 
 
-$Complist = @('N9ITA01','N9BCK01')
 $Cred     = Get-Credential
 
 # Script Body
