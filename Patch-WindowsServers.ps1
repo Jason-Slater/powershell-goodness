@@ -18,70 +18,61 @@
 #Variables
 
 
+
 $CompList = Get-ADComputer -Filter { OperatingSystem -Like '*Server*' } -Properties * | select-object -ExpandProperty name 
-
-$Cred     = Get-Credential
-
-# Script Body
 
 foreach ($Comp in $CompList) {
 
-    $Comp
+    # $Comp
 
-    $PSTestResults = (Test-NetConnection -ComputerName $Comp -CommonTCPPort WINRM).TcpTestSucceeded 
+    $PSTestResults = (Test-NetConnection -ComputerName $Comp -CommonTCPPort WINRM -Informationlevel Quiet)
 
     if ($PSTestResults -eq $False) {
         
-        Write-Output "$Comp needs to have WINRM opened and/or configured"
+        Write-Host "*** $($Comp) *** needs to have WINRM opened and/or configured" -ForegroundColor Red 
     
-    } else {
+    } else { 
+
+        Write-Host "==========================================" -ForegroundColor Cyan
+        
+        Write-Host "$($Comp) is bueno" -ForegroundColor Green
+
+        $PSVersion = (Invoke-Command -ComputerName $Comp -ScriptBlock {($PSVersionTable).PSVersion.Major})
+
+        Write-Host "$($Comp) has PowerShell version $PSVersion"
             
-        Enter-pssession -ComputerName $Comp
+                if ($PSVersion -lt 5 ) {
 
-        start-sleep -Seconds 5
+                Write-Output "$($Comp) needs to have PowerShell Updated"
 
-        $PSVersion = ($PSVersionTable).PSVersion.Major
+                } else {
 
-        Write-Output "$Comp has PowerShell version $PSVersion"
+                Invoke-Command -ComputerName $Comp -ScriptBlock {Get-PackageProvider -Name Nuget -ForceBootStrap}
 
-        Exit-PSSession
+                $PkgVerCheck = (Invoke-Command -ComputerName $Comp -ScriptBlock {(Get-PackageProvider -Name Nuget).version.major})
 
-            }
-
-            if ($PSVersion -lt 5 ) {
-
-                Write-Output "$Comp needs to have PowerShell Updated"
-
-            } else {
-
-                 Enter-pssession -ComputerName $Comp
-
-                 Start-sleep -Seconds 5
-
-                 $PkgVerCheck = (get-packageprovider Nuget).version.major 
-
-                 Write-Output "$Comp has NuGet major version $PkgVerCheck"
-                
-                 if ($PkgVerCheck -ne 2) {
+                        if ($PkgVerCheck -ne 2) {
                     
-                    Write-Output "$Comp needs to have NuGet Package Updated"
+                        Write-Output "$($Comp) needs to have NuGet Package Updated"
 
-                    Exit-PSSession
+                        } else {
 
-                 } else {
+                        Invoke-command -ComputerName $Comp -ScriptBlock {Install-PackageProvider -Name NuGet -Force ; Install-Module -Name PSWindowsUpdate -Force}
 
-                    Exit-PSSession
+                        c:\pstools\psexec.exe -accepteula  \\$Comp -s C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -c Install-WindowsUpdate -MicrosoftUpdate -Download -Install -AcceptAll -AutoReboot -IgnoreUserInput}
 
-                    Invoke-command -ComputerName $Comp -credential $Cred -script {Install-PackageProvider -Name NuGet} 
+                }
+               
 
-                    c:\pstools\psexec.exe \\$Comp -s C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -c Install-WindowsUpdate -MicrosoftUpdate -Download -Install -AcceptAll -AutoReboot -IgnoreUserInput}          
+        Write-Host "==========================================" -ForegroundColor Cyan
 
-                               
-                 }
+        Write-Host
 
-            }
+        
 
- 
+        }
+
+}
 
 
 
