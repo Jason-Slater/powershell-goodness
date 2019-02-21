@@ -1,4 +1,27 @@
-﻿    function Rename-FilesMatchingPattern
+﻿ <#PSScriptInfo
+
+.VERSION 4.0
+
+.AUTHOR Jason S.
+
+.COMPANYNAME My Company of Awesome
+
+.COPYRIGHT 2018
+
+.RELEASENOTES
+Developed internally to be used by My Company of Awesome Engineers
+
+#>
+
+<# 
+
+.DESCRIPTION 
+ Finds domain joined systems and renames vssadmin.exe to vssadmin.exe*
+
+#> 
+ 
+ 
+ function Rename-FilesMatchingPattern
 {
     param(
         [string]$UNCPath,
@@ -35,7 +58,6 @@
     }
 }
 
-# $hosts = Get-ADComputer -filter {dnshostname -like "N9adm02.neptune9.com"}
 
 $hosts = Get-ADComputer -filter {OperatingSystem -like "Windows Server*"}
 Foreach ($item in $hosts)
