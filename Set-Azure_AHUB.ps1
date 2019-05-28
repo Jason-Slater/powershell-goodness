@@ -4,7 +4,10 @@
 .DESCRIPTION
      RunBook Checks for Azure Hybrid Benifit Licencing set on Windows Server VMs, if not set then it it will be set
 .NOTES
-     Author     : Jason
+     Author: Jason
+.VERSION
+    1.1
+    
  
 #>
 
