@@ -27,9 +27,9 @@ Function Identify-Computers {
     $Time         = (Get-Date).Adddays(-($DaysInactive))
     $Date         = Get-Date
     Get-ADComputer -Filter {LastLogonTimeStamp -lt $Time} -Properties *|`
-    Select-object Name, OperatingSystem |`
+    Select-object Name, OperatingSystem PasswordLastSet|`
     Format-Table -auto |`
-    Out-File -FilePath c:\temp\ComputerDeletions_$(($Date).ToString('MM-dd-yyyy')).txt
+    Out-File -FilePath c:\temp\ComputerDeletions_$(($Date).ToString('MM-dd-yyyy-hh-mm')).txt
 }
 
 Function Disable-Computers {
