@@ -32,6 +32,16 @@ Function Identify-Computers {
     Out-File -FilePath c:\temp\ComputerDeletions_$(($Date).ToString('MM-dd-yyyy-hh-mm')).txt
 }
 
+Function Identify-Users {
+    $DaysInactive = 90
+    $Time         = (Get-Date).Adddays(-($DaysInactive))
+    $Date         = Get-Date
+    Get-ADUser -Filter {LastLogonTimeStamp -lt $Time} -Properties *|`
+    Select-object DisplayName, PasswordLastSet |`
+    Format-Table -auto |`
+    Out-File -FilePath c:\temp\UserDeletions_$(($Date).ToString('MM-dd-yyyy-hh-mm')).txt
+}
+
 Function Disable-Computers {
     $ListOfComputers = Get-Content -path c:\temp\ComputerDeletions*.txt
     $ListOfUComputers | Get-ADComputer | Set-ADComputer -Enabled $false
