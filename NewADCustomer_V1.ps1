@@ -4,21 +4,15 @@
 #  Fix $NEWUSER output
 
 
-<#
 
-$N9CloudDC = "192.168.253.160"
-
-New-PSDrive -Name N9CLOUD -PSProvider ActiveDirectory -Server $N9CloudDC -Credential (Get-Credential) -Root "//RootDSE/" -Scope Global
-
-#>
 
 # Prompt for Customer Name to Create the AD OU
 $OUName = Read-Host 'Enter Customer Name to Create the Active Directory OU'
 Write-Host ========================
-Write-Host -ForegroundColor Green "Creating connection to the N9Cloud domain"
+Write-Host -ForegroundColor Green "Creating connection to the Someplace domain"
 Write-Host ========================
 Write-Host
-# CD N9Cloud:
+#l
 
 # Create The Domain Users and Domain Group OUs For the Customer
 Write-Host ========================
