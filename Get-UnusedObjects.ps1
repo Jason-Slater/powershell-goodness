@@ -43,4 +43,5 @@ Function Identify-Users {
 
 Identify-Users
 
-
+# RecycleBin Check - Acceptable return value is False, if True the ADOptionalFeature Must be enabled
+(get-adoptionalfeature -filter 'name -like "Recycle Bin Feature"').IsDisableable
