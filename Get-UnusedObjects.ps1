@@ -2,6 +2,12 @@ Function Identify-Computers {
     $DaysInactive = 90
     $Time         = (Get-Date).Adddays(-($DaysInactive))
     $Date         = Get-Date
+
+    # Temp folder check / create if not present
+    If ((Test-Path -Path 'c:\Temp') -eq $False)
+        {New-Item -Path 'c:\Temp' -ItemType Directory}
+    
+    # Get all computer objects that have not coomumicatd with the date stated in the variable then writes it out to file
     Get-ADComputer -Filter {LastLogonTimeStamp -lt $Time} -Properties *|`
     Select-object Name, OperatingSystem, PasswordLastSet, Enabled |`
     Format-Table -auto |`
@@ -24,7 +30,7 @@ Function Test-ServConnection {
 
 Test-ServConnection
 
-
+#### Caution ~~~ This will not pick up any accounts used for mailboxes so it is possible to disable an unused mailbox user account
 Function Identify-Users {
     $DaysInactive = 90
     $Time         = (Get-Date).Adddays(-($DaysInactive))
