@@ -1,3 +1,21 @@
+
+<#PSScriptInfo
+.VERSION 2.0
+.GUID G4994e41b-db9e-4526-8167-0d63e4be4731
+.AUTHOR Jason S.
+.COMPANYNAME My Company of Awesome
+.COPYRIGHT 2020
+.EXTERNALSCRIPTDEPENDENCIES  None
+.RELEASENOTES
+  Developed internally to be used by My Company of Awesome Engineers
+.DESCRIPTION 
+  Pulls uptime froma list of Windos server objects found in AD
+  Re-orders the array so that the Windows Serve the PS is execute 
+#> 
+
+
+
+
 $Computers = (Get-ADComputer -Filter { OperatingSystem -Like '*Windows Server*'}).Name
  
 Foreach ($Computer in $Computers) {
