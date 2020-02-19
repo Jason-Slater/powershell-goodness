@@ -9,6 +9,8 @@
   Active Directory Powershell modules installed
 .RELEASENOTES
   Developed internally to be used by My Company of Awesome Engineers
+ #>
+ <#
 .DESCRIPTION 
 Pulls uptime froma list of Windos server objects found in AD
 #> 
