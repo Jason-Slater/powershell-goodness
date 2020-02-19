@@ -5,19 +5,20 @@
 .AUTHOR Jason S.
 .COMPANYNAME My Company of Awesome
 .COPYRIGHT 2020
-.EXTERNALSCRIPTDEPENDENCIES  None
+.EXTERNALSCRIPTDEPENDENCIES
+  Active Directory Powershell modules installed
 .RELEASENOTES
   Developed internally to be used by My Company of Awesome Engineers
 .DESCRIPTION 
-  Pulls uptime froma list of Windos server objects found in AD
-  Re-orders the array so that the Windows Serve the PS is execute 
+Pulls uptime froma list of Windos server objects found in AD
 #> 
 
 
 
-
+# Gathers all server objects from the domain the script is executed in
 $Computers = (Get-ADComputer -Filter { OperatingSystem -Like '*Windows Server*'}).Name
  
+# Loop through every computer with a TRY/CATCH the IF/ELSE to find last boot time
 Foreach ($Computer in $Computers) {
 
     TRY { $Foo = Get-WmiObject -Class Win32_OperatingSystem -Namespace root/cimv2 -ComputerName $computer -erroraction stop
