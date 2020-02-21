@@ -33,7 +33,7 @@ Foreach ($Computer in $Computers) {
 
     } ELSE {
         $Item1 = (Get-ADComputer $Computer -Properties * |
-            select-object OperatingSystem |
+            select-object Name |
                 Format-Table -HideTableHeaders |
                     Out-String).trim() 
 
