@@ -1,6 +1,6 @@
 
 <#PSScriptInfo
-.VERSION 2.0
+.VERSION 2.1
 .GUID G4994e41b-db9e-4526-8167-0d63e4be4731
 .AUTHOR Jason S.
 .COMPANYNAME My Company of Awesome
@@ -10,10 +10,8 @@
 .RELEASENOTES
   Developed internally to be used by My Company of Awesome Engineers
 .DESCRIPTION 
-  Pulls uptime froma list of Windos server objects found in AD
+  Pulls uptime from a list of Windows server objects found in AD
 #> 
-
-
 
 # Gathers all server objects from the domain the script is executed in
 $Computers = (Get-ADComputer -Filter { OperatingSystem -Like '*Windows Server*'}).Name
@@ -34,10 +32,24 @@ Foreach ($Computer in $Computers) {
         { Write-Host "$Computer is no bueno" -ForegroundColor Yellow    
 
     } ELSE {
-        (Get-WmiObject -computername $computer win32_operatingsystem |
-            select-object csname, @{LABEL='LastBootUpTime';EXPRESSION={$_.ConverttoDateTime($_.lastbootuptime)}} |
+        $Item1 = (Get-ADComputer $Computer -Properties * |
+            select-object OperatingSystem |
                 Format-Table -HideTableHeaders |
-                    Out-String).trim()                        
+                    Out-String).trim() 
+
+        $Item2 = (Get-WmiObject -computername $Computer win32_operatingsystem |
+            select-object @{LABEL='LastBootUpTime';EXPRESSION={$_.ConverttoDateTime($_.lastbootuptime)}} |
+                Format-Table -HideTableHeaders |
+                    Out-String).trim() 
+                    
+         $Item3 = (Get-ADComputer $Computer -Properties * |
+            select-object OperatingSystem |
+                Format-Table -HideTableHeaders |
+                    Out-String).trim() 
+            
+         Write-Host "$Item1 " -ForegroundColor Green -NoNewline;
+         Write-Host "$Item3 " -ForegroundColor Cyan -NoNewline;   
+         Write-Host $Item2 -ForegroundColor Gray                           
     }
 } 
 
