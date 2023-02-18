@@ -1,0 +1,7 @@
+$DNSCompList = (Get-ADComputer -Filter { OperatingSystem -Like '*Server*' } -Properties * | select-object -ExpandProperty name)
+
+foreach ($DNSComp in $DNSCompList) {
+
+    Invoke-Command -ComputerName $DNSComp -ScriptBlock {Get-DnsClientserveraddress -InterfaceAlias "*"}
+
+}
