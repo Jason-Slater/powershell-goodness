@@ -1,6 +1,7 @@
 ﻿Set-ExecutionPolicy Unrestricted -force
 
 
+# Function to test connection of an array of servers before obtaining uptime
 Function Get-UpTime 
 { Param ([string[]]$servers) 
   Foreach ($s in $servers)  
