@@ -1,4 +1,11 @@
-<#PSScriptInfo
+<#
+
+PSScriptInfo
+
+.README
+    This PS has been written to be used as a "triggered" script used with a local scheduled
+    task, executed in the event a condition has been satisfied, in this scenario it is related
+    to the appearance of an event within a specific event log
 
 .VERSION 1.0
 
@@ -8,40 +15,81 @@
 
 .REPO  https://github.com/Jason-Slater/powershell-goodness
 
-.COMPANYNAME Me #>
+.DEPENDENCIES  
+    C:\Temp\TaskSch-EmailAlert folder created on c:\ where the PS file and output log file live
+    O365 SMTP 
+
+.COMPANYNAME Me 
+
+#>
 
 param (
     [int]$EventID = 700,
-    [string]$LogSource = "System",
-    [string]$SMTPServer = "smtp.example.com",
-    [string]$From = "sender@example.com",
-    [string]$To = "group@example.com",
+    [string]$SMTPServer = "smtp.office365.com",
+    [int]$SMTPPort = 587,
+    [string]$From = "xxxx@yyyyy.zzz",
+    [string]$To = "xxxx@yyyyy.zzz",
     [string]$Subject = "Event ID Report",
-    [string]$MessageBody = "Event ID 6009 has been found, this has happened {0} amount of times in the past 24 hours."
+    [string]$MessageBody = "Event ID 700 has been found, this has happened {0} times in the past 24 hours.",
+    [string]$LogFile = "C:\Temp\TaskSch-EmailAlert\log.txt",
+    [string]$SMTPUser = "xxxx@yyyyy.zzz",
+    [string][ValidateNotNullOrEmpty()]$SMTPPassword = "something_really_long_here"
 )
-
-# Get the current date and time
-$EndTime = Get-Date
-
-# Get the date and time 24 hours ago
-$StartTime = $EndTime.AddHours(-24)
-
-# Get the number of event ID occurrences in the last 24 hours
-$EventCount = Get-EventLog -LogName $LogSource -InstanceId $EventID -After $StartTime -Before $EndTime | Measure-Object | Select-Object -ExpandProperty Count
-
-# Prepare the email body
-$EmailBody = $MessageBody -f $EventCount
-
-# Send the email
-$mailMessage = @{
-    From       = $From
-    To         = $To
-    Subject    = $Subject
-    Body       = $EmailBody
-    SmtpServer = $SMTPServer
+# Function to write a log message
+function Write-Log {
+    param (
+        [string]$Message
+    )
+    $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $LogMessage = "$Timestamp - $Message"
+    $LogMessage | Add-Content -Path $LogFile
 }
-Send-MailMessage @mailMessage
+# Log the start of the script
+Write-Log "Script started."
 
-# Log the action to the event log
-Write-EventLog -LogName Application -Source "PowerShell Script" -EventId 1000 -EntryType Information -Message "Email sent with event ID $EventID count: $EventCount"
+try {
+    # Get the current date and time
+    $EndTime = Get-Date
 
+    # Get the date and time 24 hours ago
+    $StartTime = $EndTime.AddHours(-24)
+
+    # Get the number of event ID occurrences in the last 24 hours
+    $Events = Get-WinEvent -FilterHashTable @{LogName='Microsoft-Windows-TerminalServices-Gateway/Admin'; Id='700'; StartTime=$StartTime}
+    $EventCount = $Events.Count
+    
+    # Log the event count
+    Write-Log "Event ID $EventID found $EventCount times in the past 24 hours in $LogName."
+    
+    # Prepare the email body
+    $EmailBody = $MessageBody -f $EventCount
+ 
+    #Selt TLS to 1.2
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+    # Send the email
+    $SecurePassword = ConvertTo-SecureString -String $SMTPPassword -AsPlainText -Force
+    $Credential = New-Object System.Management.Automation.PSCredential ($SMTPUser, $SecurePassword)
+    $mailMessageParameters = @{
+        From       = $From
+        To         = $To
+        Subject    = $Subject
+        Body       = $EmailBody
+        SmtpServer = $SMTPServer
+        Port       = $SMTPPort
+        UseSsl     = $True
+        Credential = $Credential
+    }
+    Send-MailMessage @mailMessageParameters
+ 
+    # Log the email sending action
+    Write-Log "Email sent to $To with subject '$Subject'."
+
+} catch {
+
+    # Log any errors
+    Write-Log "Error: $_"
+}
+
+# Log the end of the script 
+Write-Log "Script finished."
