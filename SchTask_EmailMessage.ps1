@@ -33,7 +33,7 @@ param (
     [string]$MessageBody = "Event ID 700 has been found, this has happened {0} times in the past 24 hours.",
     [string]$LogFile = "C:\Temp\TaskSch-EmailAlert\log.txt",
     [string]$SMTPUser = "xxxx@yyyyy.zzz",
-    [string][ValidateNotNullOrEmpty()]$SMTPPassword = "something_really_long_here"
+    [SecureString][ValidateNotNullOrEmpty()]$SMTPPassword = "something_really_long_here"
 )
 # Function to write a log message
 function Write-Log {
