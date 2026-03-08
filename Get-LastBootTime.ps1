@@ -18,45 +18,39 @@
 
 
 
-$Computers = (Get-ADComputer -Filter { OperatingSystem -Like '*Windows Server*'}).Name
- 
-Foreach ($Computer in $Computers) {
+# 1. Get all server names and OS info in one call
+$Computers = Get-ADComputer -Filter "OperatingSystem -like '*Windows Server*'" -Properties OperatingSystem
 
-    TRY { $Foo = Get-WmiObject -Class Win32_OperatingSystem -Namespace root/cimv2 -ComputerName $computer -erroraction stop
-
-    } CATCH {
-
-        Write-Host "$Computer Can't check server, likely RPC server unavailable" -ForegroundColor Yellow 
-        Continue 
-        # Move to next computer
-
-
+$Results = Foreach ($Computer in $Computers) {
+    $ComputerName = $Computer.Name
+    $Report = [PSCustomObject]@{
+        Name            = $ComputerName
+        OperatingSystem = $Computer.OperatingSystem
+        LastBootUpTime  = $null
+        Status          = "Success"
     }
-    IF((Test-netconnection -ComputerName $Computer.name -CommonTCPPort RDP -ErrorAction SilentlyContinue -WarningAction SilentlyContinue).TcpTestSucceeded -eq $False)
-        { Write-Host "$Computer is no bueno" -ForegroundColor Red  
-   
 
-    } ELSE {
-        
-    $Item1 = (Get-ADComputer $Computer -Properties * |
-            select-object Name |
-                Format-Table -HideTableHeaders |
-                    Out-String).trim() 
-    $Item2 = (Get-WmiObject -computername $Computer win32_operatingsystem |
-            select-object @{LABEL='LastBootUpTime';EXPRESSION={$_.ConverttoDateTime($_.lastbootuptime)}} |
-                Format-Table -HideTableHeaders |
-                    Out-String).trim()
-    $Item3 = (Get-ADComputer $Computer -Properties * |
-            select-object OperatingSystem |
-                Format-Table -HideTableHeaders |
-                    Out-String).trim()
-            
-         Write-Host "$Item1"`t -ForegroundColor Green -NoNewline;
-         Write-Host "$Item3"`t -ForegroundColor Cyan -NoNewline;   
-         Write-Host "$Item2"`t -ForegroundColor White
-                            
+    # 2. Connection Check (Optional but helpful)
+    if (-not (Test-Connection -ComputerName $ComputerName -Count 1 -Quiet)) {
+        $Report.Status = "Offline/No Ping"
+        $Report
+        continue
     }
-} 
 
+    try {
+        # 3. Get Uptime using modern CIM
+        $OS = Get-CimInstance -ClassName Win32_OperatingSystem -ComputerName $ComputerName -ErrorAction Stop
+        $Report.LastBootUpTime = $OS.LastBootUpTime
+    } 
+    catch {
+        $Report.Status = "RPC/CIM Unavailable"
+    }
+
+    # Output the object to the collection
+    $Report
+}
+
+# 4. Sort by Boot Date (Oldest to Newest) and Display
+$Results | Sort-Object LastBootUpTime | Select-Object Name, Status, LastBootUpTime, OperatingSystem | Out-GridView
 
 
